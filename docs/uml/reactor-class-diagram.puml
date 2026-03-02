@@ -1,0 +1,85 @@
+@startuml
+
+'skinparam linetype ortho
+'skinparam style strictuml
+
+hide empty members
+
+header Concurrency Patterns
+title Reactor Class Diagram
+
+
+'----------------------------------------------------------------
+'Classes
+'----------------------------------------------------------------
+class Client {}
+
+class Reactor {
+  -handlers: EventHandler[]
+  +subscribe(h: EventHandler)
+  +unsubscribe(h: EventHandler)
+  +start()
+  +stop()
+}
+
+interface EventHandler {
+  +{abstract}getId(): HandleId
+  +{abstract}execute()
+}
+
+class ConcreteEventHandler implements EventHandler {
+  -id: HandleId
+  -receiver: Receiver
+  +ConcreteEventHandler(id: HandleId, receiver: Receiver)
+  +getId(): HandleId
+  +execute()
+}
+
+class SyncEventDemultiplexer {
+  +wait(handlers: HandleId[]): HandleId[]
+}
+
+
+'----------------------------------------------------------------
+'Relations
+'----------------------------------------------------------------
+Client -up-> Reactor : register handlers
+Client -right-> ConcreteEventHandler : creates
+Client -down-> Receiver
+Reactor o-right->EventHandler : uses
+Reactor -down-> SyncEventDemultiplexer : waits
+ConcreteEventHandler -down-> Receiver : uses
+
+
+'----------------------------------------------------------------
+'Notes
+'----------------------------------------------------------------
+note bottom of Client
+  h = new ConcreteEventHandler(id, receiver)
+  reactor.register(h)
+end note
+
+note left of Reactor::start
+  start {
+    loop handlers
+      ids.append(h.getId())
+
+    while(!stop) {
+      events = demux.wait(ids)
+      loop(events)
+        event->execute()
+    }
+  }
+end note
+
+note bottom of ConcreteEventHandler
+  execute {
+    receiver.operation(id)
+  }
+end note
+
+'----------------------------------------------------------------
+'Layouts
+'----------------------------------------------------------------
+
+@enduml

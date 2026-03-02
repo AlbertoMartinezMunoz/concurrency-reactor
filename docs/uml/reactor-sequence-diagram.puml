@@ -1,0 +1,81 @@
+@startuml
+
+skinparam style strictuml
+
+'autoactivate off
+skinparam maxMessageSize 250
+
+header Concurrency Patterns
+title Reactor Sequence Diagram
+
+'----------------------------------------------------------------
+'Participants
+'----------------------------------------------------------------
+participant Client
+participant "Concrete Event\nHandler" as ConcreteEventHandlerA
+participant "Concrete Event\nHandler" as ConcreteEventHandlerB
+participant Reactor
+participant "Synchronous Event\nDemultiplexer" as Demultiplexer
+
+'----------------------------------------------------------------
+'Notes
+'----------------------------------------------------------------
+
+'----------------------------------------------------------------
+'Sequence
+'----------------------------------------------------------------
+== Initialization ==
+activate Client
+Client -> ConcreteEventHandlerA ** : creates
+Client -> ConcreteEventHandlerB ** : creates
+Client -> Reactor : register handler A
+activate Reactor
+Reactor --> Client
+deactivate Reactor
+Client -> Reactor : register handler B
+activate Reactor
+Reactor --> Client
+deactivate Reactor
+
+== Start Event Monitoring ==
+Client -> Reactor : start
+activate Reactor #SkyBlue
+Reactor -> ConcreteEventHandlerA : get id
+activate ConcreteEventHandlerA #SkyBlue
+ConcreteEventHandlerA --> Reactor : id A
+deactivate ConcreteEventHandlerA
+Reactor -> ConcreteEventHandlerB : get id
+activate ConcreteEventHandlerB #SkyBlue
+ConcreteEventHandlerB --> Reactor : id B
+deactivate ConcreteEventHandlerB
+
+
+loop until stop
+  Reactor -> Demultiplexer : wait for event ids
+  activate Demultiplexer #SkyBlue
+  Demultiplexer <-? : event
+  Demultiplexer --> Reactor : return active event ids
+  deactivate Demultiplexer
+  loop event ids
+    alt id = A
+      Reactor -> ConcreteEventHandlerA : handle event
+      activate ConcreteEventHandlerA #SkyBlue
+      ConcreteEventHandlerA --> Reactor
+      deactivate ConcreteEventHandlerA
+    else id = B
+      Reactor -[hidden]-> ConcreteEventHandlerA
+      Reactor -> ConcreteEventHandlerB : handle event
+      activate ConcreteEventHandlerB #SkyBlue
+      ConcreteEventHandlerB --> Reactor
+      deactivate ConcreteEventHandlerB
+    end
+  end
+end
+
+== Stop Event Monitoring ==
+activate Client
+Client -> Reactor : stop
+Reactor --> Client
+deactivate Reactor
+
+@enduml
