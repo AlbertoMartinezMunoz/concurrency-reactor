@@ -6,9 +6,10 @@ Reactor. An Event Handling Pattern for Concurrent Programming
 
 ## Intent
 
-The Reactor pattern is designed to efficiently handle multiple service requests concurrently delivered to a single-threaded service handler by demultiplexing and dispatching events to the appropriate event handlers.
+Reactor is a concurrency design pattern that allows a system to handle multiple concurrent service requests efficiently using event demultiplexing and dispatching the events to the appropriate handlers.
 
-The Reactor pattern is designed to efficiently handle many I/O events (like socket reads/writes) without creating a separate thread per connection.
+The reactor pattern enables a single thread to react to incoming events—such as I/O operations or network requests—and dispatch them to the appropriate handlers, allowing scalable and responsive event-driven applications without dedicating a separate thread to each request.
+
 
 ## Also Known As
 
